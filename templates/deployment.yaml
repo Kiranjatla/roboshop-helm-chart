@@ -33,11 +33,11 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "037402781494.dkr.ecr.us-east-1.amazonaws.com/{{ .Values.componentName }}:{{ .Values.appVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{ - if eq (include "externalSecrets.canRender" .) "true" }}
+          {{- if eq (include "externalSecrets.canRender" .) "true" }}
           envFrom:
             - secretRef:
                 name: "{{ .Values.appName }}"
-          {{ - end }}
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.appPort }}
