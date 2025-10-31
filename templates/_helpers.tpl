@@ -60,3 +60,18 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Return "true" only if:
+  1. externalSecrets.enabled = true
+  2. The ExternalSecret CRD exists on the cluster
+*/}}
+{{- define "externalSecrets.canRender" -}}
+{{- $enabled := .Values.externalSecrets.enabled | default false -}}
+{{- $crd := lookup "apiextensions.k8s.io/v1" "CustomResourceDefinition" "externalsecrets.external-secrets.io" "" -}}
+{{- if and $enabled $crd -}}
+true
+{{- else -}}
+false
+{{- end -}}
+{{- end }}

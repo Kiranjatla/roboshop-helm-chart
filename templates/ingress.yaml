@@ -16,4 +16,4 @@ spec:
                 name: {{ include "roboshop.fullname" . }}
                 port:
                   number: {{ .Values.appPort }}
-  {{- end }}
+{{- end }}
