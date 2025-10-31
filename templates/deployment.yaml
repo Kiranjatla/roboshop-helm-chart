@@ -33,7 +33,7 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "037402781494.dkr.ecr.us-east-1.amazonaws.com/{{ .Values.componentName }}:{{ .Values.appVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- /* JVM tuning – Java 8 safe */ }}
+          {{- /* JVM tuning – Java 8 safe */ -}}
           {{- if .Values.java.xmx }}
           env:
             - name: JAVA_TOOL_OPTIONS
