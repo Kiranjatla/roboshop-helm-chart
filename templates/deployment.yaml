@@ -36,7 +36,7 @@ spec:
           {{- if .Values.externalSecrets.enabled }}
           envFrom:
             - secretRef:
-                name: { { .Values.appName } }
+                name: {  .Values.appName }}
           {{- end }}
           ports:
             - name: http
