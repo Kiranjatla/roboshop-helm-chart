@@ -40,8 +40,7 @@ spec:
               value: "-Xmx{{ $xmx }}"
           {{- end }}
 
-          {{- /* ExternalSecret – only if enabled + CRD present */}}
-          {{- if eq (include "externalSecrets.canRender" .) "true" }}
+          {{- if .Values.externalSecrets.enabled }}
           envFrom:
             - secretRef:
                 name: "{{ .Values.appName }}"
