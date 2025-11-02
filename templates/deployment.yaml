@@ -33,30 +33,30 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "037402781494.dkr.ecr.us-east-1.amazonaws.com/{{ .Values.componentName }}:{{ .Values.appVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- /* JVM tuning – Java 8 safe */ -}}
-          {{- if .Values.java.xmx }}
-          env:
-            - name: JAVA_TOOL_OPTIONS
-              value: "-Xmx{{ .Values.java.xmx }}"
-          {{- end }}
-
-          {{- /* ExternalSecret – only if enabled + CRD present */}}
-          {{- if eq (include "externalSecrets.canRender" .) "true" }}
-          envFrom:
-            - secretRef:
-                name: "{{ .Values.appName }}"
-          {{- end }}
+#          {{- /* JVM tuning – Java 8 safe */ -}}
+#          {{- if .Values.java.xmx }}
+#          env:
+#            - name: JAVA_TOOL_OPTIONS
+#              value: "-Xmx{{ .Values.java.xmx }}"
+#          {{- end }}
+#
+#          {{- /* ExternalSecret – only if enabled + CRD present */}}
+#          {{- if eq (include "externalSecrets.canRender" .) "true" }}
+#          envFrom:
+#            - secretRef:
+#                name: "{{ .Values.appName }}"
+#          {{- end }}
           ports:
             - name: http
-              containerPort: {{ .Values.appPort }}
+              containerPort: 80
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /health
+              path: /
               port: http
           readinessProbe:
             httpGet:
-              path: /health
+              path: /
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
