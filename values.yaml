@@ -86,4 +86,4 @@ tolerations:
 affinity: {}
 
 externalSecrets:
-  enabled: true
+  enabled: false
