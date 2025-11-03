@@ -32,9 +32,12 @@ pipeline {
           echo "Waiting for External Secrets Operator deployment to be ready..."
           kubectl -n kube-system wait --for=condition=available deployment/external-secrets --timeout=60s
 
-          # 3. CRITICAL FIX: Force the API server cache to refresh by querying the CRD directly.
+          # 3. Force API Client Cache Refresh
           echo "Verifying CRD establishment and forcing API client cache refresh..."
+          # Force the client to list the specific CRD
           kubectl get crd externalsecrets.external-secrets.io
+          # Force the client to list ALL API resources (clears the cache)
+          kubectl api-resources
 
           # 4. Small final buffer
           sleep 5
@@ -45,7 +48,11 @@ pipeline {
     stage('Helm Deploy') {
       steps {
         sh '''
-          helm upgrade -i ${component} . -f APP/helm/prod.yml --set-string componentName=${component} --set-string appVersion=${appVersion}
+          # Adding --atomic and --wait can sometimes help Helm wait for CRDs
+          helm upgrade -i ${component} . -f APP/helm/prod.yml \
+            --set-string componentName=${component} \
+            --set-string appVersion=${appVersion} \
+            --atomic --wait
         '''
       }
     }
