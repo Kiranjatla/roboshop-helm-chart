@@ -11,6 +11,7 @@ pipeline {
     stage('CheckOut Application Code') {
       steps {
         dir('APP') {
+          // Checkout the specific component code based on the parameter
           git branch: 'main', url: "https://github.com/Kiranjatla/${component}"
         }
       }
@@ -32,14 +33,10 @@ pipeline {
           echo "Waiting for External Secrets Operator deployment to be ready..."
           kubectl -n kube-system wait --for=condition=available deployment/external-secrets --timeout=60s
 
-          # 3. Force API Client Cache Refresh
+          # 3. Force API Client Cache Refresh (for redundancy)
           echo "Verifying CRD establishment and forcing API client cache refresh..."
-          # Force the client to list the specific CRD
           kubectl get crd externalsecrets.external-secrets.io
-          # Force the client to list ALL API resources (clears the cache)
           kubectl api-resources
-
-          # 4. Small final buffer
           sleep 5
         '''
       }
@@ -47,12 +44,17 @@ pipeline {
 
     stage('Helm Deploy') {
       steps {
+        echo 'Deploying application using helm template + kubectl apply to bypass CRD recognition issues...'
         sh '''
-          # Adding --atomic and --wait can sometimes help Helm wait for CRDs
-          helm upgrade -i ${component} . -f APP/helm/prod.yml \
+          # 1. Render the Helm chart to a YAML file
+          # We use a non-interactive Helm command to generate the final manifest.
+          helm template ${component} . -f APP/helm/prod.yml \
             --set-string componentName=${component} \
             --set-string appVersion=${appVersion} \
-            --atomic --wait
+            > ${component}-manifest.yaml
+
+          # 2. Apply the manifest using kubectl, which successfully recognizes the CRD.
+          kubectl apply -f ${component}-manifest.yaml
         '''
       }
     }
