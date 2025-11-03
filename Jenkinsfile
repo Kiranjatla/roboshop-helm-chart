@@ -50,12 +50,20 @@ pipeline {
             --set-string appVersion=${appVersion} \
             > ${component}-manifest.yaml
 
-          # 2. CRITICAL FIX: Rewrite the deprecated API version (v1beta1) to the active API version (v1)
-          # This compensates for the outdated API version in the application chart.
+          # --- AUTOMATED FIXES START ---
+
+          # 2. CRITICAL FIX 1: Rewrite the deprecated API version (v1beta1) to the active API version (v1)
           echo "Fixing ExternalSecret API version from v1beta1 to v1..."
           sed -i 's/external-secrets.io\\/v1beta1/external-secrets.io\\/v1/g' ${component}-manifest.yaml
 
-          # 3. Apply the fixed manifest using kubectl.
+          # 3. CRITICAL FIX 2: Fix Duplicate Service Port Name ('http' -> 'http-app')
+          # This prevents the Kubernetes Service 'Duplicate value: http' error across all components.
+          echo "Fixing duplicate Service port name 'http' to 'http-app'..."
+          sed -i '/name: http/{s/name: http/name: http-app/}' ${component}-manifest.yaml
+
+          # --- AUTOMATED FIXES END ---
+
+          # 4. Apply the fixed manifest using kubectl.
           kubectl apply -f ${component}-manifest.yaml
         '''
       }
