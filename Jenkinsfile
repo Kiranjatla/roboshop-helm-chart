@@ -32,9 +32,12 @@ pipeline {
           echo "Waiting for External Secrets Operator deployment to be ready..."
           kubectl -n kube-system wait --for=condition=available deployment/external-secrets --timeout=60s
 
-          # 3. Add a buffer for the API server's cache to register CRDs
-          echo "Giving API server 10 seconds to establish CRDs..."
-          sleep 10
+          # 3. CRITICAL FIX: Force the API server cache to refresh by querying the CRD directly.
+          echo "Verifying CRD establishment and forcing API client cache refresh..."
+          kubectl get crd externalsecrets.external-secrets.io
+
+          # 4. Small final buffer
+          sleep 5
         '''
       }
     }
