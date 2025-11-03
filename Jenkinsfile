@@ -11,7 +11,6 @@ pipeline {
     stage('CheckOut Application Code') {
       steps {
         dir('APP') {
-          // Checkout the specific component code based on the parameter
           git branch: 'main', url: "https://github.com/Kiranjatla/${component}"
         }
       }
@@ -24,18 +23,24 @@ pipeline {
           helm repo add external-secrets https://charts.external-secrets.io || true
           helm repo update
 
-          # Targetting the 'kube-system' namespace to match the Terraform installation
-          # and setting crds.enabled=false to resolve the CRD ownership conflict.
+          # 1. Upgrade the operator in the kube-system namespace
           helm upgrade --install external-secrets external-secrets/external-secrets \
             -n kube-system \
             --set crds.enabled=false
+
+          # 2. Wait for the ESO deployment to be ready
+          echo "Waiting for External Secrets Operator deployment to be ready..."
+          kubectl -n kube-system wait --for=condition=available deployment/external-secrets --timeout=60s
+
+          # 3. Add a buffer for the API server's cache to register CRDs
+          echo "Giving API server 10 seconds to establish CRDs..."
+          sleep 10
         '''
       }
     }
 
     stage('Helm Deploy') {
       steps {
-        // Deploy the specific application component using its values file
         sh '''
           helm upgrade -i ${component} . -f APP/helm/prod.yml --set-string componentName=${component} --set-string appVersion=${appVersion}
         '''
