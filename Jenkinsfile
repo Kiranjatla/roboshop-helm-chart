@@ -16,8 +16,7 @@ pipeline {
       }
     }
 
-    // --- NEW STAGE ADDED HERE ---
-        stage('Install External Secrets Operator') {
+    stage('Install External Secrets Operator') {
           steps {
             echo 'Installing External Secrets Operator...'
             sh '''
@@ -27,14 +26,14 @@ pipeline {
               # Update local cache
               helm repo update
 
-              # Install the operator. Using 'upgrade --install' is idempotent.
-              # We deploy it into its own 'external-secrets' namespace for isolation.
+              # FIX: Set crds.enabled=false to prevent the Helm release from trying
+              # to manage CRDs that already exist, thus avoiding the ownership conflict error.
               helm upgrade --install external-secrets external-secrets/external-secrets \
-                --create-namespace --namespace external-secrets
+                --create-namespace --namespace external-secrets \
+                --set crds.enabled=false
             '''
           }
         }
-        // --- END NEW STAGE ---
 
     stage('Helm Deploy') {
       steps {
