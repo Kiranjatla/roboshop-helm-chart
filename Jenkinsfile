@@ -11,7 +11,6 @@ pipeline {
     stage('CheckOut Application Code') {
       steps {
         dir('APP') {
-          // Checkout the specific component code based on the parameter
           git branch: 'main', url: "https://github.com/Kiranjatla/${component}"
         }
       }
@@ -24,7 +23,7 @@ pipeline {
           helm repo add external-secrets https://charts.external-secrets.io || true
           helm repo update
 
-          # 1. Upgrade the operator in the kube-system namespace
+          # 1. Upgrade the operator in the kube-system namespace (CRDs already exist from Terraform)
           helm upgrade --install external-secrets external-secrets/external-secrets \
             -n kube-system \
             --set crds.enabled=false
@@ -33,9 +32,8 @@ pipeline {
           echo "Waiting for External Secrets Operator deployment to be ready..."
           kubectl -n kube-system wait --for=condition=available deployment/external-secrets --timeout=60s
 
-          # 3. Force API Client Cache Refresh (for redundancy)
-          echo "Verifying CRD establishment and forcing API client cache refresh..."
-          kubectl get crd externalsecrets.external-secrets.io
+          # 3. Force API Client Cache Refresh
+          echo "Forcing API client cache refresh..."
           kubectl api-resources
           sleep 5
         '''
@@ -44,16 +42,20 @@ pipeline {
 
     stage('Helm Deploy') {
       steps {
-        echo 'Deploying application using helm template + kubectl apply to bypass CRD recognition issues...'
+        echo 'Deploying application and fixing ExternalSecret API version mismatch...'
         sh '''
-          # 1. Render the Helm chart to a YAML file
-          # We use a non-interactive Helm command to generate the final manifest.
+          # 1. Render the Helm chart to a temporary manifest file
           helm template ${component} . -f APP/helm/prod.yml \
             --set-string componentName=${component} \
             --set-string appVersion=${appVersion} \
             > ${component}-manifest.yaml
 
-          # 2. Apply the manifest using kubectl, which successfully recognizes the CRD.
+          # 2. CRITICAL FIX: Rewrite the deprecated API version (v1beta1) to the active API version (v1)
+          # This compensates for the outdated API version in the application chart.
+          echo "Fixing ExternalSecret API version from v1beta1 to v1..."
+          sed -i 's/external-secrets.io\\/v1beta1/external-secrets.io\\/v1/g' ${component}-manifest.yaml
+
+          # 3. Apply the fixed manifest using kubectl.
           kubectl apply -f ${component}-manifest.yaml
         '''
       }
