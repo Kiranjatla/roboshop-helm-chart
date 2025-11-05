@@ -33,13 +33,6 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "037402781494.dkr.ecr.us-east-1.amazonaws.com/{{ .Values.componentName }}:{{ .Values.appVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- $xmx := (get .Values.java "xmx") | default "" }}
-          {{- if $xmx }}
-          env:
-            - name: JAVA_TOOL_OPTIONS
-              value: "-Xmx{{ $xmx }}"
-          {{- end }}
-
           {{- if .Values.externalSecrets.enabled }}
           envFrom:
             - secretRef:
@@ -58,7 +51,12 @@ spec:
               path: /health
               port: {{ .Values.appPort }}
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            limits:
+              cpu: 1000m
+              memory: 1024Mi
+            requests:
+              cpu: 800m
+              memory: 800Mi
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
