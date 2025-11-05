@@ -33,12 +33,12 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "037402781494.dkr.ecr.us-east-1.amazonaws.com/{{ .Values.componentName }}:{{ .Values.appVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- $xmx := (get .Values.java "xmx") | default "" }}
-          {{- if $xmx }}
-          env:
-            - name: JAVA_TOOL_OPTIONS
-              value: "-Xmx{{ $xmx }}"
-          {{- end }}
+#          {{- $xmx := (get .Values.java "xmx") | default "" }}
+#          {{- if $xmx }}
+#          env:
+#            - name: JAVA_TOOL_OPTIONS
+#              value: "-Xmx{{ $xmx }}"
+           {{- end }}
 
           {{- if .Values.externalSecrets.enabled }}
           envFrom:
