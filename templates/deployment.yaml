@@ -51,12 +51,7 @@ spec:
               path: /health
               port: {{ .Values.appPort }}
           resources:
-            limits:
-              cpu: 1000m
-              memory: 1024Mi
-            requests:
-              cpu: 800m
-              memory: 800Mi
+            {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
