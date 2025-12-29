@@ -58,7 +58,7 @@ spec:
           startupProbe: # Optional: For very slow starts (e.g., schema migration)
               httpGet:
                 path: /health
-                port: { { .Values.appPort } }
+                port: {{ .Values.appPort }}
               initialDelaySeconds: 10
               periodSeconds: 10
               timeoutSeconds: 5
