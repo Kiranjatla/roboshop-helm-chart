@@ -51,6 +51,10 @@ spec:
             httpGet:
               path: /health
               port: {{ .Values.appPort }}
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+            periodSeconds: 20
+            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /health
