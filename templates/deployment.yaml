@@ -51,18 +51,10 @@ spec:
             httpGet:
               path: /health
               port: {{ .Values.appPort }}
-            initialDelaySeconds: 60
-            timeoutSeconds: 5
-            periodSeconds: 20
-            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /health
               port: {{ .Values.appPort }}
-            initialDelaySeconds: 30  # Shorter for traffic readiness
-            timeoutSeconds: 5
-            periodSeconds: 10
-            failureThreshold: 3
           startupProbe: # Optional: For very slow starts (e.g., schema migration)
               httpGet:
                 path: /health
