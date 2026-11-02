@@ -13,7 +13,7 @@ spec:
       {{- include "roboshop.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
+      {{- with .Values.podAnnotations }} 
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
